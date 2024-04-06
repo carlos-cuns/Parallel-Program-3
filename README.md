@@ -44,7 +44,8 @@ These features guarantee progress in the program.
 In both problems, the experimentation followed this procedure:
 1. create a set of threads that will execute a runnable
 2. create a runnable that has a termination condition
-3. create problem-specific functions that are thread-safe
-4. display an output to confirm small data sets manually
-5. create a display that can be used for large data sets
-6. confirm correctness
+3. determine a thread-safe data structure that follows guidelines
+4. create problem-specific functions that are thread-safe
+5. display an output to confirm small data sets manually
+6. create a display that can be used for large data sets
+7. confirm correctness
