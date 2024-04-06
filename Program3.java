@@ -192,14 +192,14 @@ class MarsRover {
         List<Integer> copy = new ArrayList<>(sharedMemory);
         System.out.println("Max range: " + getMaxRange(copy));
         Collections.sort(copy);
-        System.out.print("5 coldest: [");
+        System.out.print("5 lowest: [");
         for (int i = 0; i < 5; i++) {
             System.out.print(copy.get(i) + (i != 4 ? ", " : ""));
         }
         System.out.println(']');
-        System.out.print("5 hottest: [");
+        System.out.print("5 highest: [");
         for (int i = 0; i < 5; i++) {
-            System.out.print(copy.get(59 - i) + (i != 4 ? ", " : ""));
+            System.out.print(copy.get(479 - i) + (i != 4 ? ", " : ""));
         }
         System.out.println(']');
     }
@@ -207,10 +207,9 @@ class MarsRover {
 
 class TempTasks implements Runnable {
     LinkedBlockingQueue<Integer> sharedMemory;
-    private static AtomicInteger scans = new AtomicInteger(0);
 
     public void collectTemp() {
-        int temp = (int) (Math.random() * 170) - 100;
+        int temp = (int) (Math.random() * 171) - 100;
         // System.out.println("Scanned: " + temp);
         sharedMemory.add(temp);
     }
@@ -221,7 +220,7 @@ class TempTasks implements Runnable {
 
     @Override
     public void run() {
-        while (scans.incrementAndGet() <= 60) {
+        for (int i = 0; i < 60; i++) {
             collectTemp();
         }
     }
@@ -281,7 +280,7 @@ public class Program3 {
         MarsRover curiosity = new MarsRover();
         // - start Rover and sensors
         curiosity.startRover();
-        // System.out.println("Temps: " + curiosity.sharedMemory.toString());
+        // System.out.println("Num temps: " + curiosity.sharedMemory.size());
         // - at the end of the hour, create the report using the scanned temps
         curiosity.hourlyReport();
         long endTime2 = System.currentTimeMillis();
