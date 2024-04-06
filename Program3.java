@@ -164,7 +164,8 @@ class MarsRover {
     public int getRange(int start, List<Integer> list) {
         int max = -101;
         int min = 71;
-        for (int i = start; i < start + 10; i++) {
+        // 80 is the 10 minute window where each 8 threads gathered 10 temperatures
+        for (int i = start; i < start + 80; i++) {
             int temp = list.get(i);
             if (temp < min) {
                 min = temp;
@@ -178,7 +179,7 @@ class MarsRover {
 
     public int getMaxRange(List<Integer> list) {
         int max = -1;
-        for (int i = 0; i < 50; i++) {
+        for (int i = 0; i < 400; i++) {
             int temp = getRange(i, list);
             if (temp > max) {
                 max = temp;
