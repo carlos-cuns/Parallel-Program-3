@@ -1,56 +1,12 @@
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.BlockingQueue;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-public class Program3 {
-    final static int NUM_PRESENTS = 500_000;
-
-    // each present is represented by its id, which is just an integer
-    public static ConcurrentLinkedQueue<Integer> createRandomBag() {
-        // use parallel stream to generate the list
-        List<Integer> list = IntStream.rangeClosed(1, NUM_PRESENTS)
-                .parallel()
-                .boxed()
-                .collect(Collectors.toList());
-
-        // shuffle the list
-        Collections.shuffle(list);
-        // make the list thread-safe using a data structure that has easy removal
-        return new ConcurrentLinkedQueue<>(list);
-    }
-
-    public static void main(String[] args) {
-        long startTime = System.currentTimeMillis(); // Start timing
-        // Problem 1
-        // - create unordered bag
-        ConcurrentLinkedQueue<Integer> unorderedBag = createRandomBag();
-        // - create chain
-        Chain chain = new Chain();
-        // - get the servants (Threads)
-        Thread[] servants = new Thread[4];
-        for (int i = 0; i < 4; i++) {
-            servants[i] = new Thread(new Actions(unorderedBag, chain));
-            servants[i].start();
-        }
-        System.out.println("Started servants!");
-        for (int i = 0; i < 4; i++) {
-            try {
-                servants[i].join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        long endTime = System.currentTimeMillis();
-        long totalTime = endTime - startTime;
-        System.out.println("Finished Thank You's!");
-        System.out.println("Gifts: " + chain.inserts);
-        System.out.println("Thanks: " + chain.thankyous);
-        System.out.println("Total execution time: " + totalTime + " ms");
-        // -----------------------------------------------------------------------
-    }
-}
 
 // - Do four actions
 // 1. Add to chain in an order (pop and add to new list)
@@ -181,5 +137,155 @@ class Chain {
 
     public synchronized boolean isEmpty() {
         return head == null;
+    }
+}
+
+class MarsRover {
+    // 8 sensors
+    Thread[] sensors = new Thread[8];
+    LinkedBlockingQueue<Integer> sharedMemory = new LinkedBlockingQueue<>();
+
+    // Start the rover
+    public void startRover() {
+        for (int i = 0; i < 8; i++) {
+            sensors[i] = new Thread(new TempTasks(sharedMemory));
+            sensors[i].start();
+        }
+        for (int i = 0; i < 8; i++) {
+            try {
+                sensors[i].join();
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public int getRange(int start, List<Integer> list) {
+        int max = -101;
+        int min = 71;
+        for (int i = start; i < start + 10; i++) {
+            int temp = list.get(i);
+            if (temp < min) {
+                min = temp;
+            }
+            if (temp > max) {
+                max = temp;
+            }
+        }
+        return Math.abs(max - min);
+    }
+
+    public int getMaxRange(List<Integer> list) {
+        int max = -1;
+        for (int i = 0; i < 50; i++) {
+            int temp = getRange(i, list);
+            if (temp > max) {
+                max = temp;
+                // System.out.println(temp + ": starts at " + i);
+            }
+        }
+        return max;
+    }
+
+    public void hourlyReport() {
+        List<Integer> copy = new ArrayList<>(sharedMemory);
+        System.out.println("Max range: " + getMaxRange(copy));
+        Collections.sort(copy);
+        System.out.print("5 coldest: [");
+        for (int i = 0; i < 5; i++) {
+            System.out.print(copy.get(i) + (i != 4 ? ", " : ""));
+        }
+        System.out.println(']');
+        System.out.print("5 hottest: [");
+        for (int i = 0; i < 5; i++) {
+            System.out.print(copy.get(59 - i) + (i != 4 ? ", " : ""));
+        }
+        System.out.println(']');
+    }
+}
+
+class TempTasks implements Runnable {
+    LinkedBlockingQueue<Integer> sharedMemory;
+    private static AtomicInteger scans = new AtomicInteger(0);
+
+    public void collectTemp() {
+        int temp = (int) (Math.random() * 170) - 100;
+        // System.out.println("Scanned: " + temp);
+        sharedMemory.add(temp);
+    }
+
+    TempTasks(LinkedBlockingQueue<Integer> sharedMemory) {
+        this.sharedMemory = sharedMemory;
+    }
+
+    @Override
+    public void run() {
+        while (scans.incrementAndGet() <= 60) {
+            collectTemp();
+        }
+    }
+
+}
+
+public class Program3 {
+    final static int NUM_PRESENTS = 500_000;
+
+    // each present is represented by its id, which is just an integer
+    public static ConcurrentLinkedQueue<Integer> createRandomBag() {
+        // use parallel stream to generate the list
+        List<Integer> list = IntStream.rangeClosed(1, NUM_PRESENTS)
+                .parallel()
+                .boxed()
+                .collect(Collectors.toList());
+
+        // shuffle the list
+        Collections.shuffle(list);
+        // make the list thread-safe using a data structure that has easy removal
+        return new ConcurrentLinkedQueue<>(list);
+    }
+
+    public static void main(String[] args) {
+        System.out.println("====== Problem1 1 ======\n");
+        long startTime = System.currentTimeMillis(); // Start timing
+        // Problem 1
+        // - create unordered bag
+        ConcurrentLinkedQueue<Integer> unorderedBag = createRandomBag();
+        // - create chain
+        Chain chain = new Chain();
+        // - get the servants (Threads)
+        Thread[] servants = new Thread[4];
+        for (int i = 0; i < 4; i++) {
+            servants[i] = new Thread(new Actions(unorderedBag, chain));
+            servants[i].start();
+        }
+        System.out.println("Started servants!");
+        for (int i = 0; i < 4; i++) {
+            try {
+                servants[i].join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        long endTime = System.currentTimeMillis();
+        long totalTime = endTime - startTime;
+        System.out.println("Finished Thank You's!");
+        System.out.println("Gifts: " + chain.inserts);
+        System.out.println("Thanks: " + chain.thankyous);
+        System.out.println("Total execution time: " + totalTime + " ms");
+        // -----------------------------------------------------------------------
+        // Problem 2
+        System.out.println("\n====== Problem1 2 ======\n");
+        long startTime2 = System.currentTimeMillis(); // Start timing
+        // - create Mars Rover (8 sensors)
+        MarsRover curiosity = new MarsRover();
+        // - start Rover and sensors
+        curiosity.startRover();
+        // System.out.println("Temps: " + curiosity.sharedMemory.toString());
+        // - at the end of the hour, create the report using the scanned temps
+        curiosity.hourlyReport();
+        long endTime2 = System.currentTimeMillis();
+        long totalTime2 = endTime2 - startTime2;
+        System.out.println("Total execution time: " + totalTime2 + " ms");
     }
 }
